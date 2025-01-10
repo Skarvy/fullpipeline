@@ -25,13 +25,11 @@ pipeline {
                     echo "Downloading kubectl..."
                     curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl
                     chmod +x kubectl
-                    mv kubectl /usr/local/bin/kubectl
+                    sudo mv kubectl /usr/local/bin/kubectl  # Uso de sudo aquí
                 else
                     echo "kubectl already exists in /usr/local/bin/kubectl"
                 fi
                 echo "Adding kubectl to PATH..."
-                export PATH=$PATH:/usr/local/bin
-                echo "kubectl is available at /usr/local/bin/kubectl"
             '''
         }
     }
