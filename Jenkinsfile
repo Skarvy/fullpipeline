@@ -30,16 +30,16 @@ pipeline {
     steps {
         script {
             // Usar las credenciales almacenadas en Jenkins de manera segura
-            withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                // Log in to DockerHub or any container registry you are using
-                sh "docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD"
-
-                // Push backend Docker image to DockerHub or any registry
-                sh "docker push $BACKEND_IMAGE"
-
-                // Push frontend Docker image to DockerHub or any registry
-                sh "docker push $FRONTEND_IMAGE"
+            withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
+                sh """
+                echo $DOCKER_TOKEN | docker login -u skardevops --password-stdin
+                docker build -t skardevops/backend:latest ./api
+                docker build -t skardevops/frontend:latest ./web
+                docker push skardevops/backend:latest
+                docker push skardevops/frontend:latest
+                """
             }
+
         }
     }
 }
