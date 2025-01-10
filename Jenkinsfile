@@ -7,12 +7,33 @@ pipeline {
         BACKEND_IMAGE = 'backend:latest'
         GRAFANA_IMAGE = 'grafana/grafana:latest'
         PROMETHEUS_IMAGE = 'prom/prometheus:latest'
+        KUBECTL_PATH = '/usr/local/bin/kubectl'  // Ruta donde se instalará kubectl
     }
     stages {
         stage('Checkout') {
             steps {
                 // Checkout your code from the repository
                 git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
+            }
+        }
+        stage('Install kubectl') {
+            steps {
+                script {
+                    sh '''
+                        echo "Checking if kubectl exists..." 
+                        if [ ! -f $KUBECTL_PATH ]; then
+                            echo "Downloading kubectl..."
+                            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl
+                            chmod +x kubectl
+                            mv kubectl $KUBECTL_PATH
+                        else
+                            echo "kubectl already exists in $KUBECTL_PATH"
+                        fi
+                        echo "Adding kubectl to PATH..."
+                        export PATH=$PATH:$KUBECTL_PATH
+                        echo "kubectl is available at $KUBECTL_PATH"
+                    '''
+                }
             }
         }
         stage('Build Docker Images') {
@@ -27,23 +48,21 @@ pipeline {
             }
         }
         stage('Push Docker Images to Registry') {
-    steps {
-        script {
-            // Usar las credenciales almacenadas en Jenkins de manera segura
-            withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
-                sh """
-                echo $DOCKER_TOKEN | docker login -u skardevops --password-stdin
-                docker build -t skardevops/backend:latest ./api
-                docker build -t skardevops/frontend:latest ./web
-                docker push skardevops/backend:latest
-                docker push skardevops/frontend:latest
-                """
+            steps {
+                script {
+                    // Usar las credenciales almacenadas en Jenkins de manera segura
+                    withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
+                        sh """
+                        echo $DOCKER_TOKEN | docker login -u skardevops --password-stdin
+                        docker build -t skardevops/backend:latest ./api
+                        docker build -t skardevops/frontend:latest ./web
+                        docker push skardevops/backend:latest
+                        docker push skardevops/frontend:latest
+                        """
+                    }
+                }
             }
-
         }
-    }
-}
-
         stage('Deploy to Kubernetes') {
             steps {
                 script {

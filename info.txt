@@ -1,1 +1,1 @@
-Crear credenciales y unirla entre jenkis y dockerhub.
+Crear credenciales y unirla entre jenkis y dockerhub ID: Usa un nombre como docker-hub-token.
