@@ -1,15 +1,15 @@
 # Usamos la imagen lts
+# Usamos la imagen Jenkins LTS
 FROM jenkins/jenkins:lts
 
-# Usamos la imagen docker:dind y copiamos el binario a /usr/local/bin
+# Copiamos el binario de Docker desde la imagen docker:dind
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin
 
-# Cambiamos al usuario root para ejecutar comandos con permisos de superusuario
+# Cambiamos a usuario root para configurar permisos
 USER root
 
-# Creamos el grupo docker si no existe y agregamos al usuario jenkins al grupo
-RUN groupadd -g 999 docker && usermod -aG docker jenkins
+# Creamos el grupo 'docker' y agregamos al usuario 'jenkins'
+RUN groupadd docker && usermod -aG docker jenkins
 
-# Volvemos al usuario jenkins
+# Volvemos al usuario Jenkins
 USER jenkins
-
