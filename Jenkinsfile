@@ -26,7 +26,7 @@ pipeline {
                 }
             }
         }
-        tage('Push Docker Images to Registry') {
+        stage('Push Docker Images to Registry') {
     steps {
         script {
             // Usar las credenciales almacenadas en Jenkins de manera segura
@@ -43,6 +43,7 @@ pipeline {
         }
     }
 }
+
         stage('Deploy to Kubernetes') {
             steps {
                 script {
