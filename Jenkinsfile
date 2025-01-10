@@ -1,18 +1,18 @@
 pipeline {
     agent any
 
-    stages {
-        stage('Install kubectl') {
-            steps {
-                script {
-                    sh '''
-                    curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
-                    chmod +x ./kubectl
-                    sudo mv ./kubectl /usr/local/bin/kubectl
-                    '''
-                }
-            }
+    sstage('Install kubectl') {
+    steps {
+        script {
+            sh '''#!/bin/bash
+            curl -LO https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl
+            chmod +x ./kubectl
+            mv ./kubectl /usr/local/bin/kubectl
+            '''
         }
+    }
+}
+
 
         stage('Verify Kubernetes Installation') {
             steps {
