@@ -2,41 +2,38 @@ pipeline {
     agent any
 
     stages {
+        stage('Install kubectl') {
+            steps {
+                script {
+                    sh '''
+                    curl -LO "https://dl.k8s.io/release/v1.26.0/bin/linux/amd64/kubectl"
+                    chmod +x ./kubectl
+                    sudo mv ./kubectl /usr/local/bin/kubectl
+                    '''
+                }
+            }
+        }
+
         stage('Verify Kubernetes Installation') {
             steps {
-                // Verificar si kubectl está disponible
                 script {
-                    try {
-                        sh 'kubectl version --client'
-                    } catch (Exception e) {
-                        error "kubectl no está instalado o no es accesible."
-                    }
+                    sh 'kubectl version --client'
                 }
             }
         }
 
         stage('Verify Cluster Access') {
             steps {
-                // Verificar si se puede acceder al clúster de Kubernetes
                 script {
-                    try {
-                        sh 'kubectl cluster-info'
-                    } catch (Exception e) {
-                        error "No se puede acceder al clúster de Kubernetes."
-                    }
+                    sh 'kubectl cluster-info'
                 }
             }
         }
 
         stage('List Pods') {
             steps {
-                // Listar los pods en el clúster para verificar que el clúster es accesible
                 script {
-                    try {
-                        sh 'kubectl get pods --all-namespaces'
-                    } catch (Exception e) {
-                        error "Error al listar los pods del clúster de Kubernetes."
-                    }
+                    sh 'kubectl get pods --all-namespaces'
                 }
             }
         }
