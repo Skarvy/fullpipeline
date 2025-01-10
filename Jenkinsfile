@@ -26,20 +26,23 @@ pipeline {
                 }
             }
         }
-        stage('Push Docker Images to Registry') {
-            steps {
-                script {
-                    // Log in to DockerHub or any container registry you are using
-                    sh "docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD"
+        tage('Push Docker Images to Registry') {
+    steps {
+        script {
+            // Usar las credenciales almacenadas en Jenkins de manera segura
+            withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                // Log in to DockerHub or any container registry you are using
+                sh "docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD"
 
-                    // Push backend Docker image to DockerHub or any registry
-                    sh "docker push $BACKEND_IMAGE"
+                // Push backend Docker image to DockerHub or any registry
+                sh "docker push $BACKEND_IMAGE"
 
-                    // Push frontend Docker image to DockerHub or any registry
-                    sh "docker push $FRONTEND_IMAGE"
-                }
+                // Push frontend Docker image to DockerHub or any registry
+                sh "docker push $FRONTEND_IMAGE"
             }
         }
+    }
+}
         stage('Deploy to Kubernetes') {
             steps {
                 script {
