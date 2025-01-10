@@ -19,10 +19,10 @@ pipeline {
             steps {
                 script {
                     // Build backend Docker image
-                    sh "docker build -t $BACKEND_IMAGE ./backend"
+                    sh "docker build -t $BACKEND_IMAGE ./api"
 
                     // Build frontend Docker image
-                    sh "docker build -t $FRONTEND_IMAGE ./frontend"
+                    sh "docker build -t $FRONTEND_IMAGE ./web"
                 }
             }
         }
