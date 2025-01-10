@@ -16,25 +16,7 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
             }
         }
-            stage('Install kubectl') {
-    steps {
-        script {
-            sh '''
-                echo "Checking if kubectl exists..." 
-                if [ ! -f /usr/local/bin/kubectl ]; then
-                    echo "Downloading kubectl..."
-                    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl
-                    chmod +x kubectl
-                    sudo mv kubectl /usr/local/bin/kubectl  # Uso de sudo aquí
-                else
-                    echo "kubectl already exists in /usr/local/bin/kubectl"
-                fi
-                echo "Adding kubectl to PATH..."
-            '''
-        }
-    }
-}
-
+            
         stage('Build Docker Images') {
             steps {
                 script {
