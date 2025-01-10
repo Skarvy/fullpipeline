@@ -1,87 +1,44 @@
 pipeline {
     agent any
-    environment {
-        // Define the namespace and app name
-        K8S_NAMESPACE = 'mi-proyecto'
-        FRONTEND_IMAGE = 'frontend:latest'
-        BACKEND_IMAGE = 'backend:latest'
-        GRAFANA_IMAGE = 'grafana/grafana:latest'
-        PROMETHEUS_IMAGE = 'prom/prometheus:latest'
-        KUBECTL_PATH = '/usr/local/bin/kubectl'  // Ruta donde se instalará kubectl
-    }
-    stages {
-        stage('Checkout') {
-            steps {
-                // Checkout your code from the repository
-                git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
-            }
-        }
-            
-        stage('Build Docker Images') {
-            steps {
-                script {
-                    // Build backend Docker image
-                    sh "docker build -t $BACKEND_IMAGE ./api"
 
-                    // Build frontend Docker image
-                    sh "docker build -t $FRONTEND_IMAGE ./web"
-                }
-            }
-        }
-        stage('Push Docker Images to Registry') {
+    stages {
+        stage('Verify Kubernetes Installation') {
             steps {
+                // Verificar si kubectl está disponible
                 script {
-                    // Usar las credenciales almacenadas en Jenkins de manera segura
-                    withCredentials([string(credentialsId: 'docker-hub-token', variable: 'DOCKER_TOKEN')]) {
-                        sh """
-                        echo $DOCKER_TOKEN | docker login -u skardevops --password-stdin
-                        docker build -t skardevops/backend:latest ./api
-                        docker build -t skardevops/frontend:latest ./web
-                        docker push skardevops/backend:latest
-                        docker push skardevops/frontend:latest
-                        """
+                    try {
+                        sh 'kubectl version --client'
+                    } catch (Exception e) {
+                        error "kubectl no está instalado o no es accesible."
                     }
                 }
             }
         }
-        stage('Deploy to Kubernetes') {
+
+        stage('Verify Cluster Access') {
             steps {
+                // Verificar si se puede acceder al clúster de Kubernetes
                 script {
-                    // Deploy the backend app in Kubernetes
-                    sh """
-                    kubectl set image deployment/backend backend=$BACKEND_IMAGE -n $K8S_NAMESPACE
-                    """
-
-                    // Deploy the frontend app in Kubernetes
-                    sh """
-                    kubectl set image deployment/frontend frontend=$FRONTEND_IMAGE -n $K8S_NAMESPACE
-                    """
-
-                    // Deploy Prometheus
-                    sh """
-                    kubectl set image deployment/prometheus prometheus=$PROMETHEUS_IMAGE -n $K8S_NAMESPACE
-                    """
-
-                    // Deploy Grafana
-                    sh """
-                    kubectl set image deployment/grafana grafana=$GRAFANA_IMAGE -n $K8S_NAMESPACE
-                    """
+                    try {
+                        sh 'kubectl cluster-info'
+                    } catch (Exception e) {
+                        error "No se puede acceder al clúster de Kubernetes."
+                    }
                 }
             }
         }
-        stage('Monitor and Validate') {
+
+        stage('List Pods') {
             steps {
+                // Listar los pods en el clúster para verificar que el clúster es accesible
                 script {
-                    // Here you can add steps to monitor the pods, check logs, or validate the deployments
-                    sh "kubectl get pods -n $K8S_NAMESPACE"
+                    try {
+                        sh 'kubectl get pods --all-namespaces'
+                    } catch (Exception e) {
+                        error "Error al listar los pods del clúster de Kubernetes."
+                    }
                 }
             }
-        }
-    }
-    post {
-        always {
-            // Cleanup steps, like logging out from the Docker registry
-            sh "docker logout"
         }
     }
 }
