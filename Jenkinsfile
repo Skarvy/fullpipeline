@@ -16,26 +16,27 @@ pipeline {
                 git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
             }
         }
-        stage('Install kubectl') {
-            steps {
-                script {
-                    sh '''
-                        echo "Checking if kubectl exists..." 
-                        if [ ! -f $KUBECTL_PATH ]; then
-                            echo "Downloading kubectl..."
-                            curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl
-                            chmod +x kubectl
-                            mv kubectl $KUBECTL_PATH
-                        else
-                            echo "kubectl already exists in $KUBECTL_PATH"
-                        fi
-                        echo "Adding kubectl to PATH..."
-                        export PATH=$PATH:$KUBECTL_PATH
-                        echo "kubectl is available at $KUBECTL_PATH"
-                    '''
-                }
-            }
+            stage('Install kubectl') {
+    steps {
+        script {
+            sh '''
+                echo "Checking if kubectl exists..." 
+                if [ ! -f /usr/local/bin/kubectl ]; then
+                    echo "Downloading kubectl..."
+                    curl -LO https://storage.googleapis.com/kubernetes-release/release/v1.31.0/bin/linux/amd64/kubectl
+                    chmod +x kubectl
+                    mv kubectl /usr/local/bin/kubectl
+                else
+                    echo "kubectl already exists in /usr/local/bin/kubectl"
+                fi
+                echo "Adding kubectl to PATH..."
+                export PATH=$PATH:/usr/local/bin
+                echo "kubectl is available at /usr/local/bin/kubectl"
+            '''
         }
+    }
+}
+
         stage('Build Docker Images') {
             steps {
                 script {
