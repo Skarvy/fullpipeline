@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: mi-proyecto
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 3001
+      targetPort: 80

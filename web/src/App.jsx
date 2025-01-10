@@ -1,3 +1,4 @@
+
 import React, {useEffect, useState} from 'react'
 import './App.css'
 import Parts from "./Parts";
@@ -29,7 +30,7 @@ function App() {
 
     useEffect(() => {
         setLoading(true)
-        fetch("/api/avatar/spec")
+        fetch(`${import.meta.env.VITE_API_URL}/api/avatar/spec`)
             .then(res => res.json())
             .then(result => {
                 setSpec(result);
@@ -51,7 +52,7 @@ function App() {
             setAvatarURL(null);
             return;
         }
-        setAvatarURL('/api/avatar?' + new URLSearchParams(partChoices));
+        setAvatarURL(`${import.meta.env.VITE_API_URL}/api/avatar?`  + new URLSearchParams(partChoices));
     }, [partChoices, loading]);
 
     if (error) {
