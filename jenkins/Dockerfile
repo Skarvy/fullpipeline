@@ -16,6 +16,14 @@ RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/s
 # Creamos el grupo 'docker' y agregamos al usuario 'jenkins'
 RUN groupadd docker && usermod -aG docker jenkins
 
+# Copiamos el archivo de configuración de Kubernetes al contenedor
+# Asegúrate de tener el archivo config en el mismo directorio donde se construirá la imagen
+COPY config /var/jenkins_home/.kube/config
+
+# Ajustamos permisos para que Jenkins pueda acceder al archivo
+RUN mkdir -p /var/jenkins_home/.kube \
+    && chown -R jenkins:jenkins /var/jenkins_home/.kube
+
 # Configuramos permisos para el usuario jenkins si fuera necesario
 RUN chown -R jenkins:jenkins /var/jenkins_home
 
