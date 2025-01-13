@@ -9,14 +9,13 @@ pipeline {
         PROMETHEUS_IMAGE = 'prom/prometheus:latest'
     }
     stages {
-        stage('Verify Kubernetes Installation') {
         stage('Checkout') {
             steps {
                 // Checkout your code from the repository
                 git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
             }
         }
-        stage('Build Docker Images') {
+        stage('Verify Kubernetes Installation') {
             steps {
                 script {
                     echo 'Checking kubectl installation...'
@@ -25,6 +24,12 @@ pipeline {
                     } catch (Exception e) {
                         error("Failed to verify kubectl installation. Ensure it is installed and accessible in the PATH.")
                     }
+                }
+            }
+        }
+        stage('Build Docker Images') {
+            steps {
+                script {
                     // Build backend Docker image
                     sh "docker build -t $BACKEND_IMAGE ./api"
                     // Build frontend Docker image
@@ -33,7 +38,6 @@ pipeline {
             }
         }
         stage('Verify Docker') {
-        stage('Push Docker Images to Registry') {
             steps {
                 script {
                     echo 'Checking Docker installation...'
@@ -42,6 +46,12 @@ pipeline {
                     } catch (Exception e) {
                         error("Failed to verify Docker installation. Ensure Docker is installed and accessible in the PATH.")
                     }
+                }
+            }
+        }
+        stage('Push Docker Images to Registry') {
+            steps {
+                script {
                     // Log in to DockerHub or any container registry you are using
                     sh "docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD"
                     // Push backend Docker image to DockerHub or any registry
@@ -92,5 +102,4 @@ pipeline {
             sh "docker logout"
         }
     }
-}
 }
