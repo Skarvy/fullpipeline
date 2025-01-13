@@ -2,14 +2,33 @@ pipeline {
     agent any
 
     environment {
-        K8S_NAMESPACE = 'default'  // Puedes cambiar esto a tu namespace si es necesario
+        K8S_NAMESPACE = 'default'
+        KUBECONFIG_CONTENT = '''apiVersion: v1
+        clusters:
+        - cluster:
+            server: https://<API_SERVER_URL>
+            certificate-authority-data: <CERTIFICATE_AUTHORITY_DATA>
+        contexts:
+        - context:
+            cluster: <CLUSTER_NAME>
+            user: <USER_NAME>
+        current-context: <CLUSTER_NAME>
+        kind: Config
+        preferences: {}
+        users:
+        - name: <USER_NAME>
+          user:
+            client-certificate-data: <CLIENT_CERTIFICATE_DATA>
+            client-key-data: <CLIENT_KEY_DATA>
+        '''
     }
 
     stages {
-        stage('Verificar conexión con Kubernetes') {
+        stage('Generar kubeconfig') {
             steps {
                 script {
-                    // Verificar que Jenkins pueda ejecutar kubectl
+                    // Escribir el archivo kubeconfig
+                    writeFile file: '/home/jenkins/.kube/config', text: KUBECONFIG_CONTENT
                     sh 'kubectl version --client'
                 }
             }
