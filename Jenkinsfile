@@ -21,14 +21,15 @@ pipeline {
             client-certificate-data: <CLIENT_CERTIFICATE_DATA>
             client-key-data: <CLIENT_KEY_DATA>
         '''
+        KUBECONFIG = '/var/jenkins_home/.kube/config'
     }
 
     stages {
         stage('Generar kubeconfig') {
             steps {
                 script {
-                    // Escribir el archivo kubeconfig
-                    writeFile file: '/home/jenkins/.kube/config', text: KUBECONFIG_CONTENT
+                    // Escribir el archivo kubeconfig en el directorio adecuado
+                    writeFile file: KUBECONFIG, text: KUBECONFIG_CONTENT
                     sh 'kubectl version --client'
                 }
             }
