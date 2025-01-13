@@ -58,7 +58,8 @@ pipeline {
                     """
 
                     // Escribir el archivo kubeconfig
-                    writeFile file: '/root/.kube/config', text: kubeconfigContent
+                    writeFile file: '/tmp/.kube/config', text: kubeconfigContent
+
 
                     // Verificar que kubectl funcione con el kubeconfig
                     sh 'kubectl get nodes'
