@@ -11,31 +11,32 @@ pipeline {
     }
     stages {
         stage('Setup Control Plane') {
-            steps {
-                script {
-                    sh """
-                    # Instalar dependencias para Kubernetes
-                    sudo apt-get update && sudo apt-get install -y kubeadm kubectl kubelet
+    steps {
+        script {
+            sh '''
+            # Instalar dependencias para Kubernetes
+            sudo apt-get update && sudo apt-get install -y kubeadm kubectl kubelet
 
-                    # Inicializar el Control Plane si no está configurado
-                    if ! sudo kubeadm config view &>/dev/null; then
-                        sudo kubeadm init --pod-network-cidr=192.168.0.0/16
+            # Inicializar el Control Plane si no está configurado
+            if ! sudo kubeadm config view &>/dev/null; then
+                sudo kubeadm init --pod-network-cidr=192.168.0.0/16
 
-                        # Configurar acceso local para kubectl
-                        mkdir -p $HOME/.kube
-                        sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
-                        sudo chown $(id -u):$(id -g) $HOME/.kube/config
+                # Configurar acceso local para kubectl
+                mkdir -p $HOME/.kube
+                sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+                sudo chown $(id -u):$(id -g) $HOME/.kube/config
 
-                        # Guardar kubeconfig para Jenkins
-                        cp $HOME/.kube/config ${KUBECONFIG_PATH}
-                    fi
+                # Guardar kubeconfig para Jenkins
+                cp $HOME/.kube/config ${KUBECONFIG_PATH}
+            fi
 
-                    # Instalar plugin de red (Calico)
-                    kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml --kubeconfig=${KUBECONFIG_PATH}
-                    """
-                }
-            }
+            # Instalar plugin de red (Calico)
+            kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml --kubeconfig=${KUBECONFIG_PATH}
+            '''
         }
+    }
+}
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
