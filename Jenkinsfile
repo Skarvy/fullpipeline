@@ -1,56 +1,96 @@
 pipeline {
     agent any
-
     environment {
-        K8S_NAMESPACE = 'default'
-        KUBECONFIG_CONTENT = '''apiVersion: v1
-        clusters:
-        - cluster:
-            server: https://<API_SERVER_URL>
-            certificate-authority-data: <CERTIFICATE_AUTHORITY_DATA>
-        contexts:
-        - context:
-            cluster: <CLUSTER_NAME>
-            user: <USER_NAME>
-        current-context: <CLUSTER_NAME>
-        kind: Config
-        preferences: {}
-        users:
-        - name: <USER_NAME>
-          user:
-            client-certificate-data: <CLIENT_CERTIFICATE_DATA>
-            client-key-data: <CLIENT_KEY_DATA>
-        '''
-        KUBECONFIG = '/var/jenkins_home/.kube/config'
+        // Define the namespace and app name
+        K8S_NAMESPACE = 'mi-proyecto'
+        FRONTEND_IMAGE = 'frontend:latest'
+        BACKEND_IMAGE = 'backend:latest'
+        GRAFANA_IMAGE = 'grafana/grafana:latest'
+        PROMETHEUS_IMAGE = 'prom/prometheus:latest'
     }
-
     stages {
-        stage('Generar kubeconfig') {
+        stage('Verify Kubernetes Installation') {
+        stage('Checkout') {
+            steps {
+                // Checkout your code from the repository
+                git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
+            }
+        }
+        stage('Build Docker Images') {
             steps {
                 script {
-                    // Escribir el archivo kubeconfig en el directorio adecuado
-                    writeFile file: KUBECONFIG, text: KUBECONFIG_CONTENT
-                    sh 'kubectl version --client'
+                    echo 'Checking kubectl installation...'
+                    try {
+                        sh 'kubectl version --client'
+                    } catch (Exception e) {
+                        error("Failed to verify kubectl installation. Ensure it is installed and accessible in the PATH.")
+                    }
+                    // Build backend Docker image
+                    sh "docker build -t $BACKEND_IMAGE ./api"
+                    // Build frontend Docker image
+                    sh "docker build -t $FRONTEND_IMAGE ./web"
                 }
             }
         }
-
-        stage('Listar Pods en Kubernetes') {
+        stage('Verify Docker') {
+        stage('Push Docker Images to Registry') {
             steps {
                 script {
-                    // Listar los pods en el namespace por defecto
-                    sh 'kubectl get pods -n $K8S_NAMESPACE'
+                    echo 'Checking Docker installation...'
+                    try {
+                        sh 'docker --version'
+                    } catch (Exception e) {
+                        error("Failed to verify Docker installation. Ensure Docker is installed and accessible in the PATH.")
+                    }
+                    // Log in to DockerHub or any container registry you are using
+                    sh "docker login -u \$DOCKER_USERNAME -p \$DOCKER_PASSWORD"
+                    // Push backend Docker image to DockerHub or any registry
+                    sh "docker push $BACKEND_IMAGE"
+                    // Push frontend Docker image to DockerHub or any registry
+                    sh "docker push $FRONTEND_IMAGE"
                 }
             }
         }
-
-        stage('Verificar Estado de Nodes') {
+        stage('Deploy to Kubernetes') {
             steps {
                 script {
-                    // Verificar el estado de los nodos en el clúster
-                    sh 'kubectl get nodes'
+                    // Deploy the backend app in Kubernetes
+                    sh """
+                    kubectl set image deployment/backend backend=$BACKEND_IMAGE -n $K8S_NAMESPACE
+                    """
+                    // Deploy the frontend app in Kubernetes
+                    sh """
+                    kubectl set image deployment/frontend frontend=$FRONTEND_IMAGE -n $K8S_NAMESPACE
+                    """
+                    // Deploy Prometheus
+                    sh """
+                    kubectl set image deployment/prometheus prometheus=$PROMETHEUS_IMAGE -n $K8S_NAMESPACE
+                    """
+                    // Deploy Grafana
+                    sh """
+                    kubectl set image deployment/grafana grafana=$GRAFANA_IMAGE -n $K8S_NAMESPACE
+                    """
+                }
+            }
+        }
+        stage('Monitor and Validate') {
+            steps {
+                script {
+                    // Here you can add steps to monitor the pods, check logs, or validate the deployments
+                    sh "kubectl get pods -n $K8S_NAMESPACE"
                 }
             }
         }
     }
+    post {
+        always {
+            echo 'Pipeline execution completed.'
+        }
+        failure {
+            echo 'Pipeline failed. Please check the error logs above.'
+            // Cleanup steps, like logging out from the Docker registry
+            sh "docker logout"
+        }
+    }
+}
 }
