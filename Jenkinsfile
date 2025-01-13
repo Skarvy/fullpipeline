@@ -2,8 +2,9 @@ pipeline {
     agent any
     environment {
         K8S_NAMESPACE = 'mi-proyecto'
-        FRONTEND_IMAGE = 'frontend:latest'
-        BACKEND_IMAGE = 'backend:latest'
+        DOCKER_USERNAME = 'skardevops' // Tu usuario en Docker Hub
+        FRONTEND_IMAGE = "${DOCKER_USERNAME}/frontend:latest"
+        BACKEND_IMAGE = "${DOCKER_USERNAME}/backend:latest"
         GRAFANA_IMAGE = 'grafana/grafana:latest'
         PROMETHEUS_IMAGE = 'prom/prometheus:latest'
     }
@@ -25,9 +26,11 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh "echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin"
-                        sh "docker push $BACKEND_IMAGE"
-                        sh "docker push $FRONTEND_IMAGE"
+                        sh """
+                        echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                        docker push $BACKEND_IMAGE
+                        docker push $FRONTEND_IMAGE
+                        """
                     }
                 }
             }
