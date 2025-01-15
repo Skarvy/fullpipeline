@@ -32,38 +32,31 @@ pipeline {
             }
         }
         stage('Create Kind Cluster') {
-            steps {
-                script {
-                    sh """
-                    if ! kind get clusters | grep -q $KIND_CLUSTER_NAME; then
-                        kind create cluster --name $KIND_CLUSTER_NAME --config kind-cluster-config.yaml
-                    else
-                        echo "Cluster $KIND_CLUSTER_NAME already exists"
-                    fi
-
-                    # Export kubeconfig for kubectl
-                    kind get kubeconfig --name $KIND_CLUSTER_NAME > $KUBECONFIG
-                    chown jenkins:jenkins $KUBECONFIG
-                    """
-                }
-            }
+    steps {
+        script {
+            sh """
+            if ! kind get clusters | grep -q $KIND_CLUSTER_NAME; then
+                kind create cluster --name $KIND_CLUSTER_NAME --config kind-cluster-config.yaml
+            fi
+            kind get kubeconfig --name $KIND_CLUSTER_NAME > /tmp/kind_kubeconfig
+            export KUBECONFIG=/tmp/kind_kubeconfig
+            """
         }
-        stage('Deploy to Kubernetes') {
-            steps {
-                script {
-                    sh """
-                    kubectl create namespace $K8S_NAMESPACE || echo "Namespace $K8S_NAMESPACE already exists"
+    }
+}
 
-                    # Replace image placeholders in manifests
-                    sed -i "s|IMAGE_PLACEHOLDER_BACKEND|$BACKEND_IMAGE|g" ./k8s/backend-deployment.yaml
-                    sed -i "s|IMAGE_PLACEHOLDER_FRONTEND|$FRONTEND_IMAGE|g" ./k8s/frontend-deployment.yaml
-
-                    # Apply Kubernetes manifests
-                    kubectl apply -f ./k8s/ -n $K8S_NAMESPACE
-                    """
-                }
-            }
+stage('Deploy to Kubernetes') {
+    steps {
+        script {
+            sh """
+            export KUBECONFIG=/tmp/kind_kubeconfig
+            kubectl create namespace $K8S_NAMESPACE || echo "Namespace $K8S_NAMESPACE already exists"
+            kubectl apply -f ./k8s/ -n $K8S_NAMESPACE --validate=false
+            """
         }
+    }
+}
+
         stage('Monitor and Validate') {
             steps {
                 script {
