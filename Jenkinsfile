@@ -6,6 +6,7 @@ pipeline {
         FRONTEND_IMAGE = "${DOCKER_USERNAME}/frontend:latest"
         BACKEND_IMAGE = "${DOCKER_USERNAME}/backend:latest"
         KIND_CLUSTER_NAME = 'mi-cluster'
+        KUBECONFIG = '/var/jenkins_home/.kube/config'
     }
     stages {
         stage('Checkout') {
@@ -39,6 +40,10 @@ pipeline {
                     else
                         echo "Cluster $KIND_CLUSTER_NAME already exists"
                     fi
+
+                    # Export kubeconfig for kubectl
+                    kind get kubeconfig --name $KIND_CLUSTER_NAME > $KUBECONFIG
+                    chown jenkins:jenkins $KUBECONFIG
                     """
                 }
             }
@@ -48,6 +53,12 @@ pipeline {
                 script {
                     sh """
                     kubectl create namespace $K8S_NAMESPACE || echo "Namespace $K8S_NAMESPACE already exists"
+
+                    # Replace image placeholders in manifests
+                    sed -i "s|IMAGE_PLACEHOLDER_BACKEND|$BACKEND_IMAGE|g" ./k8s/backend-deployment.yaml
+                    sed -i "s|IMAGE_PLACEHOLDER_FRONTEND|$FRONTEND_IMAGE|g" ./k8s/frontend-deployment.yaml
+
+                    # Apply Kubernetes manifests
                     kubectl apply -f ./k8s/ -n $K8S_NAMESPACE
                     """
                 }
