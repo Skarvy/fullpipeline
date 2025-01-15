@@ -5,8 +5,7 @@ pipeline {
         DOCKER_USERNAME = 'skardevops'
         FRONTEND_IMAGE = "${DOCKER_USERNAME}/frontend:latest"
         BACKEND_IMAGE = "${DOCKER_USERNAME}/backend:latest"
-        GRAFANA_IMAGE = 'grafana/grafana:latest'
-        PROMETHEUS_IMAGE = 'prom/prometheus:latest'
+        KIND_CLUSTER_NAME = 'mi-cluster'
     }
     stages {
         stage('Checkout') {
@@ -16,56 +15,48 @@ pipeline {
         }
         stage('Build Docker Images') {
             steps {
-                script {
-                    sh "docker build -t $BACKEND_IMAGE ./api"
-                    sh "docker build -t $FRONTEND_IMAGE ./web"
-                }
+                sh "docker build -t $BACKEND_IMAGE ./api"
+                sh "docker build -t $FRONTEND_IMAGE ./web"
             }
         }
         stage('Push Docker Images to Registry') {
             steps {
-                script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh """
-                        echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                        docker push $BACKEND_IMAGE
-                        docker push $FRONTEND_IMAGE
-                        """
-                    }
-                }
-            }
-        }
-        stage('Update Manifests') {
-            steps {
-                script {
+                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                     sh """
-                    sed -i 's|image: .*backend:.*|image: $BACKEND_IMAGE|' ./k8s/backend-deployment.yaml
-                    sed -i 's|image: .*frontend:.*|image: $FRONTEND_IMAGE|' ./k8s/frontend-deployment.yaml
+                    echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
+                    docker push $BACKEND_IMAGE
+                    docker push $FRONTEND_IMAGE
                     """
                 }
             }
         }
-        stage('Apply Kubernetes Manifests') {
+        stage('Create Kind Cluster') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
-                        sh """
-                        export KUBECONFIG=${KUBECONFIG}
-                        kubectl apply -f ./k8s/ -n $K8S_NAMESPACE
-                        """
-                    }
+                    sh """
+                    if ! kind get clusters | grep -q $KIND_CLUSTER_NAME; then
+                        kind create cluster --name $KIND_CLUSTER_NAME --config kind-cluster-config.yaml
+                    else
+                        echo "Cluster $KIND_CLUSTER_NAME already exists"
+                    fi
+                    """
+                }
+            }
+        }
+        stage('Deploy to Kubernetes') {
+            steps {
+                script {
+                    sh """
+                    kubectl create namespace $K8S_NAMESPACE || echo "Namespace $K8S_NAMESPACE already exists"
+                    kubectl apply -f ./k8s/ -n $K8S_NAMESPACE
+                    """
                 }
             }
         }
         stage('Monitor and Validate') {
             steps {
                 script {
-                    withCredentials([file(credentialsId: 'kubeconfig-file', variable: 'KUBECONFIG')]) {
-                        sh """
-                        export KUBECONFIG=${KUBECONFIG}
-                        kubectl get pods -n $K8S_NAMESPACE
-                        """
-                    }
+                    sh "kubectl get pods -n $K8S_NAMESPACE"
                 }
             }
         }
