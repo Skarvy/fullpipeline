@@ -1,50 +1,30 @@
 pipeline {
     agent any
-    environment {
-        DOCKER_USERNAME = 'skardevops'
-        FRONTEND_IMAGE = "${DOCKER_USERNAME}/frontend:latest"
-        BACKEND_IMAGE = "${DOCKER_USERNAME}/backend:latest"
-    }
     stages {
-        stage('Checkout') {
+        stage('Verify Docker Installation') {
             steps {
-                git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
-            }
-        }
-        stage('Build Docker Images') {
-            steps {
-                sh "docker build -t $BACKEND_IMAGE ./api"
-                sh "docker build -t $FRONTEND_IMAGE ./web"
-            }
-        }
-        stage('Push Docker Images to Registry') {
-            steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-creds', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
-                    sh """
-                    echo \$DOCKER_PASSWORD | docker login -u \$DOCKER_USERNAME --password-stdin
-                    docker push $BACKEND_IMAGE
-                    docker push $FRONTEND_IMAGE
-                    """
+                script {
+                    echo "Checking Docker installation..."
+                    sh 'docker --version || exit 1' // Verifica si Docker está instalado
+                    sh 'docker info || exit 1'     // Verifica si Docker está funcionando correctamente
                 }
             }
         }
-        stage('Deploy with Docker Compose') {
+        stage('Verify Docker Compose Installation') {
             steps {
-                sh """
-                docker-compose down || true
-                docker-compose up -d --build
-                """
+                script {
+                    echo "Checking Docker Compose installation..."
+                    sh 'docker-compose --version || exit 1' // Verifica si Docker Compose está instalado
+                }
             }
         }
-        stage('Monitor and Validate') {
+        stage('List Docker Data Directory') {
             steps {
-                sh "docker ps"
+                script {
+                    echo "Listing Docker data directory..."
+                    sh 'docker info | grep "Docker Root Dir" || exit 1' // Muestra la ubicación del directorio de datos de Docker
+                }
             }
-        }
-    }
-    post {
-        always {
-            sh "docker logout"
         }
     }
 }
