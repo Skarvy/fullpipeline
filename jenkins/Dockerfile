@@ -1,15 +1,11 @@
 # Usamos la imagen Jenkins LTS
 FROM jenkins/jenkins:lts
 
-# # Usamos la imagen de Jenkins como base
-FROM jenkins/jenkins:lts
-
 # Copiamos el binario de Docker desde la imagen docker:dind
 COPY --from=docker:dind /usr/local/bin/docker /usr/local/bin
 
 # Cambiamos a usuario root para configurar permisos y herramientas
 USER root
-
 # Instalamos kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
     && chmod +x kubectl \
