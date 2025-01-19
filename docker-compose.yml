@@ -34,7 +34,7 @@ services:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
-      - ./prometheus.yml:/etc/prometheus/prometheus.yml # Archivo de configuración
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml # Archivo de configuración
     ports:
       - "9090:9090"
     networks:
