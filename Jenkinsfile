@@ -23,7 +23,7 @@ pipeline {
                 script {
                     echo "Cloning the repository..."
                     // Clonar el repositorio
-                    git 'https://github.com/Skarvy/fullpipeline'
+                     git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
                 }
             }
         }
