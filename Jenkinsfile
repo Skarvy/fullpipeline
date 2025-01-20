@@ -26,6 +26,14 @@ pipeline {
                 }
             }
         }
+        stage('Stop and Remove Existing Containers') {
+            steps {
+                script {
+                    echo "Stopping and removing existing containers..."
+                    sh 'docker-compose down || exit 1'  // Detiene y elimina los contenedores previos
+                }
+            }
+        }
         stage('Build Docker Images') {
             steps {
                 script {
