@@ -18,6 +18,26 @@ pipeline {
                 }
             }
         }
+        stage('Checkout Repo') {
+            steps {
+                script {
+                    echo "Cloning the repository..."
+                    // Clonar el repositorio
+                    git 'https://github.com/Skarvy/fullpipeline'
+                }
+            }
+        }
+        stage('Run Docker Compose Up') {
+            steps {
+                script {
+                    echo "Starting Docker Compose..."
+                    // Navegar al directorio del repositorio clonado y ejecutar docker-compose up
+                    dir('fullpipeline') {
+                        sh 'docker-compose up -d'  // Ejecuta docker-compose en segundo plano
+                    }
+                }
+            }
+        }
         stage('List Docker Data Directory') {
             steps {
                 script {
