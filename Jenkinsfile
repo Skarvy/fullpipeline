@@ -1,12 +1,20 @@
 pipeline {
     agent any
     stages {
+        stage('Checkout Repo') {
+            steps {
+                script {
+                    echo "Cloning the repository..."
+                    git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
+                }
+            }
+        }
         stage('Verify Docker Installation') {
             steps {
                 script {
                     echo "Checking Docker installation..."
-                    sh 'docker --version || exit 1' // Verifica si Docker está instalado
-                    sh 'docker info || exit 1'     // Verifica si Docker está funcionando correctamente
+                    sh 'docker --version || exit 1'
+                    sh 'docker info || exit 1'
                 }
             }
         }
@@ -14,16 +22,15 @@ pipeline {
             steps {
                 script {
                     echo "Checking Docker Compose installation..."
-                    sh 'docker-compose --version || exit 1' // Verifica si Docker Compose está instalado
+                    sh 'docker-compose --version || exit 1'
                 }
             }
         }
-        stage('Checkout Repo') {
+        stage('Build Docker Images') {
             steps {
                 script {
-                    echo "Cloning the repository..."
-                    // Clonar el repositorio
-                     git branch: 'main', url: 'https://github.com/Skarvy/fullpipeline.git'
+                    echo "Building Docker images..."
+                    sh 'docker-compose build || exit 1'  // Fuerza la construcción de las imágenes
                 }
             }
         }
@@ -31,10 +38,7 @@ pipeline {
             steps {
                 script {
                     echo "Starting Docker Compose..."
-                    // Navegar al directorio del repositorio clonado y ejecutar docker-compose up
-                    dir('fullpipeline') {
-                        sh 'docker compose up -d --force-recreate'  // Ejecuta docker-compose en segundo plano
-                    }
+                    sh 'docker-compose up -d || exit 1'  // Levanta los contenedores en segundo plano
                 }
             }
         }
@@ -42,7 +46,7 @@ pipeline {
             steps {
                 script {
                     echo "Listing Docker data directory..."
-                    sh 'docker info | grep "Docker Root Dir" || exit 1' // Muestra la ubicación del directorio de datos de Docker
+                    sh 'docker info | grep "Docker Root Dir" || exit 1'
                 }
             }
         }
