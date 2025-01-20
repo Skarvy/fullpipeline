@@ -33,7 +33,7 @@ pipeline {
                     echo "Starting Docker Compose..."
                     // Navegar al directorio del repositorio clonado y ejecutar docker-compose up
                     dir('fullpipeline') {
-                        sh 'docker-compose up -d'  // Ejecuta docker-compose en segundo plano
+                        sh 'docker compose up -d --force-recreate'  // Ejecuta docker-compose en segundo plano
                     }
                 }
             }
