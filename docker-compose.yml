@@ -30,16 +30,7 @@ services:
     labels:
       - "monitoring=flask_app" # Etiqueta para identificar el servicio en Prometheus
 
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: prometheus
-    volumes:
-      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml # Archivo de configuración
-    ports:
-      - "9090:9090"
-    networks:
-      - app-network
-
+  
   grafana:
     image: grafana/grafana:latest
     container_name: grafana
