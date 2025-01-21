@@ -20,36 +20,15 @@ services:
       context: ./api
       dockerfile: Dockerfile
     container_name: backend
-    environment:
-      - FLASK_ENV=development
-      - DEBUG_METRICS=1
+  
+   
     ports:
       - "5000:5000"
     networks:
       - app-network
-    labels:
-      - "monitoring=flask_app" # Etiqueta para identificar el servicio en Prometheus
-
-  
-  grafana:
-    image: grafana/grafana:latest
-    container_name: grafana
-    ports:
-      - "3000:3000"
-    networks:
-      - app-network
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources
-      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards
-      - ./grafana/dashboards:/var/lib/grafana/dashboards
 
 networks:
   app-network:
     driver: bridge
 
-volumes:
-  grafana-data:
+
