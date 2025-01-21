@@ -43,41 +43,47 @@ Más Información: [Enlace](./ABOUT.md)
    - Usar el gestor de paquetes npm
    - El frontend se comunica con el backend a través de solicitudes HTTP para generar y mostrar avatares.
 
-#### Objetivos DevOps:
-El objetivo principal es implementar un flujo de trabajo DevOps completo para el proyecto Avatares. Esto incluye:
 
-1. **Infraestructura como Código (IaC) con Terraform:**
-   - Utilizar Terraform para definir y aprovisionar la infraestructura necesaria, como servidores, cluster, redes, bases de datos, etc.
-   - Usar AWS ó Localstack
+ **Despliegue con Docker y Jenkins**
 
-2. **Continuous Integration / Continuous Deployment (CI/CD):**
-   - Configurar un pipeline de CI/CD utilizando herramientas como Jenkins, GitLab CI, o GitHub Actions.
-   - Implementar despliegues automatizados del backend y frontend en entornos de desarrollo y producción.
 
-3. **Contenedores:**
-   - Utilizar contenedores Docker para empaquetar y distribuir la aplicación backend y frontend, junto con todas sus dependencias.
-   - Definir Dockerfiles para construir imágenes de contenedor optimizadas y seguras.
-   - Utilizar Docker Compose para orquestar contenedores en entornos locales de desarrollo y pruebas.
-   - Subir las imagenes al Registry de Docker-Hub
 
-4. **Orquestación de Contenedores con Kubernetes:**
-   - Implementar Kubernetes para orquestar y administrar los contenedores en un entorno de producción.
-   - Definir y desplegar manifestos de Kubernetes (archivos YAML) para desplegar y escalar la aplicación en clústeres de Kubernetes.
-   - Pueden usar Minikube/k3s/K0s/Killercoda/AWS-EKS
+El proyecto está configurado para ejecutarse en contenedores Docker utilizando Docker Compose. La integración con Jenkins permite automatizar el flujo de desarrollo y despliegue continuo.
 
-5. **Observabilidad:**
-   - Implementar herramientas de observabilidad como Prometheus para la recopilación de métricas, Grafana para la visualización de métricas.
-   - Configurar paneles de control en Grafana para monitorear el rendimiento de la aplicación, la utilización de recursos y la salud del clúster de Kubernetes.
+Configuración de Docker Compose
 
-6. **Buenas Prácticas:**
-   - Aplicar prácticas de seguridad.
-   - Implementar estrategias de gestión de configuración para mantener la configuración de la aplicación separada del código fuente.
-   - Utilizar GitFlow para gestionar el flujo de código y versionado de la aplicación.
+El archivo docker-compose.yml define los servicios necesarios:
 
-#### Entregables del Proyecto:
-- Repositorio de código en un sistema de control de versiones como GitHub, GitLab o Bitbucket.
-- Documentación detallada que describa la arquitectura del proyecto, la configuración de la infraestructura, los pasos de implementación de DevOps y las prácticas seguidas.
-- Pipeline de CI/CD configurado y funcionando para el despliegues.
-- Infraestructura aprovisionada y administrada mediante Terraform.
-- Aplicación desplegada y ejecutándose correctamente en un clúster de Kubernetes.
-- Herramientas de observabilidad configuradas y proporcionando información útil sobre el estado y rendimiento de la aplicación.
+Frontend:
+
+Construcción desde ./web con la imagen de Node.js.
+
+Exposición en el puerto 3001.
+
+Comunicación con el backend mediante la variable de entorno REACT_APP_API_URL.
+
+Backend:
+
+Construcción desde ./api con Flask.
+
+Exposición en el puerto 5000.
+
+
+**Pipeline de Jenkins**
+
+
+El pipeline automatiza las siguientes tareas:
+
+Clonación del repositorio.
+
+Verificación de la instalación de Docker y Docker Compose.
+
+Eliminación de contenedores existentes.
+
+Construcción de imágenes Docker.
+
+Levantamiento de los servicios.
+
+Inspección del entorno de Docker.
+
+Este flujo garantiza un despliegue confiable y reproducible de la aplicación.
