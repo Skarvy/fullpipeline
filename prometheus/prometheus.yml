@@ -1,7 +1,0 @@
-global:
-  scrape_interval: 10s  # Intervalo para recolectar métricas
-
-scrape_configs:
-  - job_name: 'flask-backend'
-    static_configs:
-      - targets: ['backend:5000']
