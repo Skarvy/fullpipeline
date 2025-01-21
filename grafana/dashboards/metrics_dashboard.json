@@ -1,0 +1,34 @@
+{
+  "dashboard": {
+    "title": "App Metrics Dashboard",
+    "panels": [
+      {
+        "type": "graph",
+        "title": "HTTP Requests Duration",
+        "targets": [
+          {
+            "expr": "rate(flask_http_request_duration_seconds_sum[5m])",
+            "legendFormat": "{{method}} {{path}}",
+            "refId": "A"
+          }
+        ],
+        "datasource": "Prometheus"
+      },
+      {
+        "type": "singlestat",
+        "title": "Total Site Visits",
+        "targets": [
+          {
+            "expr": "site_visits_total",
+            "refId": "B"
+          }
+        ],
+        "datasource": "Prometheus"
+      }
+    ],
+    "refresh": "10s",
+    "schemaVersion": 16,
+    "version": 1
+  },
+  "overwrite": true
+}
