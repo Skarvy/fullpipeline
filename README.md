@@ -44,7 +44,7 @@ Más Información: [Enlace](./ABOUT.md)
    - El frontend se comunica con el backend a través de solicitudes HTTP para generar y mostrar avatares.
 
 
- **Despliegue con Docker y Jenkins**
+ ## Despliegue con Docker y Jenkins
 
 
 
@@ -54,7 +54,7 @@ Configuración de Docker Compose
 
 El archivo docker-compose.yml define los servicios necesarios:
 
-Frontend:
+**Frontend:**
 
 Construcción desde ./web con la imagen de Node.js.
 
@@ -62,17 +62,17 @@ Exposición en el puerto 3001.
 
 Comunicación con el backend mediante la variable de entorno REACT_APP_API_URL.
 
-Backend:
+**Backend:**
 
 Construcción desde ./api con Flask.
 
 Exposición en el puerto 5000.
 
 
-**Pipeline de Jenkins**
+## Pipeline de Jenkins
 
 
-El pipeline automatiza las siguientes tareas:
+**El pipeline automatiza las siguientes tareas:**
 
 Clonación del repositorio.
 
